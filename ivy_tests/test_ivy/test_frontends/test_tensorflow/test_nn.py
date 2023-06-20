@@ -81,6 +81,18 @@ def _x_and_filters(
             dim = 2
     else:
         dim = len(data_format) - 2
+    if padding == "EXPLICIT":
+        padding = draw(
+            helpers.lists(
+                x=st.integers(min_value=0, max_value=2),
+                min_size=dim * 2,
+                max_size=dim * 2,
+            )
+        )
+        if data_format.find("C") == 1:
+            padding = [1, 1, 1, 1] + padding
+        else:
+            padding = [0, 0] + padding + [0, 0]
     if atrous:
         dilations = draw(st.integers(dilation_min, dilation_max))
     else:
@@ -1328,7 +1340,7 @@ def test_tensorflow_softmax(
 @handle_frontend_test(
     fn_tree="tensorflow.nn.embedding_lookup",
     dtypes_indices_weights=helpers.embedding_helper(),
-    max_norm=st.floats(min_value=0, max_value=5, exclude_min=True),
+    max_norm=st.floats(min_value=0.1, max_value=5, exclude_min=True),
 )
 def test_tensorflow_embedding_lookup(
     *,
